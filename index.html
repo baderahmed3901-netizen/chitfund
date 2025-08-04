@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chit's Fund</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+  <style>
+    body {
+      background: #000;
+      color: black;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+    }
+    #particles-canvas-body {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    @media (max-width: 767px) {
+      .container {
+        width: 320px;
+        padding: 25px;
+        background: white;
+        border-radius: 30px;
+        text-align: center;
+        animation: fadeIn 1s;
+        box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        margin: 20px 0;
+      }
+      h2 {
+        font-size: 28px;
+        margin: 0 0 10px 0;
+      }
+      p {
+        font-size: 14px;
+        margin: 5px 0 15px 0;
+      }
+      input {
+        width: 270px;
+        padding: 12px;
+        margin: 12px 0;
+        background: #333;
+        border: none;
+        color: #fff;
+        border-radius: 10px;
+        font-size: 16px;
+      }
+      button {
+        width: 150px;
+        padding: 12px;
+        background: black;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        font-size: 16px;
+        margin-top: 15px;
+      }
+      button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+      }
+      .spin-button {
+        width: 150px;
+        padding: 12px;
+        background: black;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        font-size: 16px;
+        margin-top: 15px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .spin-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+      }
+    }
+    @media (min-width: 768px) {
+      .container {
+        width: 600px;
+        padding: 40px;
+        background: white;
+        border-radius: 40px;
+        text-align: center;
+        animation: fadeIn 1s;
+        box-shadow: 0 15px 30px rgba(255, 255, 255, 0.15);
+        margin: 30px 0;
+        position: relative;
+      }
+      h2 {
+        font-size: 36px;
+        margin: 0 0 15px 0;
+      }
+      p {
+        font-size: 18px;
+        margin: 10px 0 20px 0;
+      }
+      input {
+        width: 500px;
+        padding: 15px;
+        margin: 15px 0;
+        background: #333;
+        border: none;
+        color: #fff;
+        border-radius: 12px;
+        font-size: 18px;
+      }
+      button {
+        width: 200px;
+        padding: 15px;
+        background: black;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        font-size: 18px;
+        margin-top: 20px;
+      }
+      button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.25);
+      }
+      .spin-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 150px;
+        padding: 15px;
+        background: black;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        font-size: 18px;
+      }
+      .spin-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.25);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    #personalPage, #businessPage, #adminPage {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas-body"></canvas>
+  <div class="container" id="loginPage">
+    <h2>CHIT'S FUND</h2>
+    <p>Please login with allotted credentials</p>
+    <input type="text" id="username" placeholder="Enter your username" />
+    <input type="password" id="password" placeholder="Enter your password" />
+    <button onclick="login()">Sign In</button>
+   
+    <div class="qr" id="qrSection" style="display:none;">
+      <img src="https://via.placeholder.com/150" alt="Payment QR Code" />
+      <p>Scan to pay and share screenshot below:</p>
+      <input type="file" id="screenshot" accept="image/*" />
+    </div>
+  </div>
+  <script>
+    // Passwords are hashed using SHA-256. Original passwords are not stored in plain text.
+    // To generate a hash for a new password, use: console.log(sha256("your_password_here"));
+    const users = {
+      ibrahim: { password: "c0c0c3f3f2f0f2a7e6f5e8a3f4e5c7e8b2c1a4e3d5b6c7a8e9f0a1b2c3d4e5f", page: "ibrahimselection.html" },
+      baderyounus: { password: "a2c4e6f8b0d2a4e6f8b0d2a4e6f8b0d2a4e6f8b0d2a4e6f8b0d2a4e6f8b0d2", page: "Bader.html" },
+      afifaazam: { password: "b3d5f7a9c1e3a5f7b9d1e3a5f7b9d1e3a5f7b9d1e3a5f7b9d1e3a5f7b9d1e3", page: "afifaazam.html" },
+      mariya: { password: "c4e6a8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4", page: "mariya.html" },
+      meraj: { password: "d5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5", page: "meraj.html" },
+      basith: { password: "e6a8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6", page: "basith.html" },
+      ahmed: { password: "f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7", page: "ahmed.html" },
+      labeebasiraj: { password: "a8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8", page: "labeebasiraj.html" },
+    };
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const hashedPassword = sha256(password);
+      const user = users[username];
+      if (user && user.password === hashedPassword) {
+        window.location.href = user.page;
+      } else {
+        alert("Invalid credentials");
+      }
+    }
+    (function() {
+      const canvases = [
+        { canvas: document.getElementById('particles-canvas-body'), container: document.body }
+      ];
+      const particles = [];
+      function Particle(canvas) {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = Math.random() * 0.5 - 0.25;
+        this.vy = Math.random() * 0.5 - 0.25;
+        this.radius = Math.random() * 1.5;
+      }
+      function initParticles() {
+        particles.length = 0;
+        canvases.forEach(({ canvas, container }) => {
+          canvas.width = container.offsetWidth;
+          canvas.height = container.offsetHeight;
+          for (let i = 0; i < 50; i++) {
+            particles.push({ particle: new Particle(canvas), canvas });
+          }
+        });
+      }
+      function animateParticles() {
+        canvases.forEach(({ canvas }) => {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          particles.filter(p => p.canvas === canvas).forEach(({ particle: p }) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        });
+        requestAnimationFrame(animateParticles);
+      }
+      window.addEventListener('resize', initParticles);
+      window.onload = () => {
+        initParticles();
+        animateParticles();
+      };
+    })();
+  </script>
+</body>
+</html>

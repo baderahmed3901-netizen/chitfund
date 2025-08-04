@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ibrahim's Chitti Dashboard</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      position: relative;
+    }
+    #particles-canvas-body {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .dashboard, .stat-card, .chitti-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .particles-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    @media (max-width: 767px) {
+      .container {
+        width: 320px;
+        padding: 15px;
+        background: #1a1a1a;
+        border-radius: 18px;
+        text-align: center;
+        animation: fadeIn 1s;
+        box-shadow: 0 6px 12px rgba(255, 255, 255, 0.1);
+        margin: 10px 0;
+        position: relative;
+        transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0 0 6px 0;
+      }
+      p {
+        font-size: 11px;
+        margin: 3px 0 10px 0;
+      }
+      .dashboard {
+        padding: 12px;
+        background: #1a1a1a;
+        border-radius: 8px;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-wrap: inherit;
+      }
+      .stat-card {
+        background: #000000;
+        padding: 8px;
+        border-radius: 6px;
+        width: 48%;
+        margin-bottom: 8px;
+        margin-right: 0px;
+        font-size: 11px;
+      }
+      .chitti-card {
+        background: #000000;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .chitti-details {
+        text-align: left;
+        margin-bottom: 8px;
+      }
+      .chitti-details h4 {
+        font-size: 13px;
+        margin: 0 0 4px 0;
+      }
+      .chitti-details p {
+        font-size: 11px;
+        margin: 2px 0;
+      }
+      .progress {
+        width: 100%;
+        background: #333;
+        border-radius: 4px;
+        margin: 4px 0;
+      }
+      .progress-bar {
+        height: 7px;
+        background: #fff;
+        border-radius: 4px;
+      }
+      .logout, .spin-button {
+        display: block;
+        margin: 10px auto 15px auto;
+        padding: 8px 12px;
+        background: #fff;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        width: 100px;
+        max-width: 120px;
+      }
+      .logout:hover, .spin-button:hover {
+        background: #ddd;
+      }
+      button {
+        padding: 7px 10px;
+        background: #fff;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 11px;
+        margin-top: 5px;
+        width: 100px;
+        display: block;
+        margin-left: auto;
+        margin-right: 0;
+      }
+      button:hover {
+        transform: scale(1.05);
+      }
+    }
+    @media (min-width: 768px) {
+      .container {
+        width: 600px;
+        padding: 40px;
+        background: white;
+        color: black;
+        border-radius: 40px;
+        text-align: center;
+        animation: fadeIn 1s;
+        box-shadow: 0 15px 30px rgba(255, 255, 255, 0.15);
+        margin: 30px 0;
+        transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+      }
+      h2 {
+        font-size: 36px;
+        margin: 0 0 15px 0;
+      }
+      p {
+        font-size: 18px;
+        margin: 10px 0 20px 0;
+      }
+      .dashboard {
+        padding: 30px;
+        background: #000000;
+        border-radius: 15px;
+        color: white;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: #000000;
+        padding: 15px;
+        border-radius: 10px;
+        width: 22%;
+        text-align: center;
+        color: white;
+      }
+      .chitti-card {
+        background: #000000;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+      }
+      .chitti-details {
+        text-align: left;
+      }
+      .progress {
+        width: 100%;
+        background: #333;
+        border-radius: 5px;
+      }
+      .progress-bar {
+        height: 10px;
+        background: #fff;
+        border-radius: 5px;
+      }
+      .logout, .spin-button {
+        position: absolute;
+        top: 20px;
+        padding: 10px;
+        background: #fff;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .logout {
+        right: 20px;
+      }
+      .spin-button {
+        right: 120px;
+      }
+      .logout:hover, .spin-button:hover {
+        background: #ddd;
+      }
+      button {
+        padding: 10px 20px;
+        background: #fff;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: transform 0.3s;
+      }
+      button:hover {
+        transform: scale(1.05);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas-body"></canvas>
+  <div class="container" class="dashboard">
+    <canvas class="particles-canvas"></canvas>
+    <h2>Welcome, Ibrahim Saudagar</h2>
+    <p>Personal Chitti Dashboard</p>
+    <p>payment status might take upto 12hrs to reflect on the site</p>
+    <button class="logout" onclick="logout()">Logout</button>
+    <button class="spin-button" onclick="window.location.href='spin.html'">Spin</button>
+    <div class="stats">
+      <div class="stat-card"><canvas class="particles-canvas"></canvas><span>💳</span> Total Invested ₹0</div>
+      <div class="stat-card"><canvas class="particles-canvas"></canvas><span>📈</span> Amount Received ₹0</div>
+      <div class="stat-card"><canvas class="particles-canvas"></canvas><span>👥</span> Active Chitti's 3</div>
+      <div class="stat-card"><canvas class="particles-canvas"></canvas><span>📅</span> Next Payment Aug 1</div>
+    </div>
+    <h3>Your Chitti's</h3>
+    <div class="chitti-card">
+      <canvas class="particles-canvas"></canvas>
+      <div class="chitti-details">
+        <h4>Abdul Hannan<span style="color: green;"> &nbsp; Active</span></h4>
+        <p><span>💰</span> Total Amount ₹60,000</p>
+        <p><span>📅</span> Monthly Payment ₹5,000</p>
+        <p><span>⏳</span> Period 12months</p>
+        <p><span>📊</span> Progress 0/12</p>
+        <div class="progress"><div class="progress-bar" style="width: 0%;"></div></div>
+        <p>Completion Progress 0%</p>
+      </div>
+      <div>
+        <p>Fixed Payment Date: 1st to 5th of every month</p>
+        <button onclick="window.location.href='upi://pay?pa=9390430571@axl&am=5000.00&tn=Chitti_Payment&cu=INR'"><h3><b>Pay Now</b></h3></button>
+      </div>
+    </div>
+    <div class="chitti-card">
+      <canvas class="particles-canvas"></canvas>
+      <div class="chitti-details">
+        <h4>Hafsa Maheen<span style="color: green;"> &nbsp; Active</span></h4>
+        <p><span>💰</span> Total Amount ₹60,000</p>
+        <p><span>📅</span> Monthly Payment ₹5,000</p>
+        <p><span>⏳</span> Period 12months</p>
+        <p><span>📊</span> Progress 0/12</p>
+        <div class="progress"><div class="progress-bar" style="width: 0%;"></div></div>
+        <p>Completion Progress 0%</p>
+      </div>
+      <div>
+        <p>Fixed Payment Date: 1st to 5th of every month</p>
+        <button onclick="window.location.href='upi://pay?pa=9390430571@axl&am=5000.00&tn=Chitti_Payment&cu=INR'"><h3><b>Pay Now</b></h3></button>
+      </div>
+    </div>
+    <div class="chitti-card">
+      <canvas class="particles-canvas"></canvas>
+      <div class="chitti-details">
+        <h4>Hajera Kauser<span style="color: green;"> &nbsp; Active</span></h4>
+        <p><span>💰</span> Total Amount ₹60,000</p>
+        <p><span>📅</span> Monthly Payment ₹5,000</p>
+        <p><span>⏳</span> Period 12months</p>
+        <p><span>📊</span> Progress 0/12</p>
+        <div class="progress"><div class="progress-bar" style="width: 0%;"></div></div>
+        <p>Completion Progress 0%</p>
+      </div>
+      <div>
+        <p>Fixed Payment Date: 1st to 5th of every month</p>
+        <button onclick="window.location.href='upi://pay?pa=9390430571@axl&am=5000.00&tn=Chitti_Payment&cu=INR'"><h3><b>Pay Now</b></h3></button>
+      </div>
+    </div>
+  </div>
+  <script>
+    function logout() {
+      window.location.href = "index.html";
+    }
+    (function() {
+      const canvases = [
+        { canvas: document.getElementById('particles-canvas-body'), container: document.body },
+        ...Array.from(document.querySelectorAll('.dashboard, .stat-card, .chitti-card')).map(el => ({
+          canvas: el.querySelector('.particles-canvas'),
+          container: el
+        }))
+      ];
+      const particles = [];
+      function Particle(canvas) {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = Math.random() * 0.5 - 0.25;
+        this.vy = Math.random() * 0.5 - 0.25;
+        this.radius = Math.random() * 1.5;
+      }
+      function initParticles() {
+        particles.length = 0;
+        canvases.forEach(({ canvas, container }) => {
+          canvas.width = container.offsetWidth;
+          canvas.height = container.offsetHeight;
+          for (let i = 0; i < 50; i++) {
+            particles.push({ particle: new Particle(canvas), canvas });
+          }
+        });
+      }
+      function animateParticles() {
+        canvases.forEach(({ canvas }) => {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          particles.filter(p => p.canvas === canvas).forEach(({ particle: p }) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        });
+        requestAnimationFrame(animateParticles);
+      }
+      window.addEventListener('resize', initParticles);
+      window.onload = () => {
+        initParticles();
+        animateParticles();
+      };
+    })();
+  </script>
+</body>
+</html>
