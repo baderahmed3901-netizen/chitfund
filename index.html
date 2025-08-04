@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chit's Fund</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
   <style>
     body {
       background: #000;
@@ -37,14 +36,8 @@
         box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
         margin: 20px 0;
       }
-      h2 {
-        font-size: 28px;
-        margin: 0 0 10px 0;
-      }
-      p {
-        font-size: 14px;
-        margin: 5px 0 15px 0;
-      }
+      h2 { font-size: 28px; margin: 0 0 10px 0; }
+      p { font-size: 14px; margin: 5px 0 15px 0; }
       input {
         width: 270px;
         padding: 12px;
@@ -71,25 +64,6 @@
         transform: scale(1.05);
         box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
       }
-      .spin-button {
-        width: 150px;
-        padding: 12px;
-        background: black;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: transform 0.3s, box-shadow 0.3s;
-        font-size: 16px;
-        margin-top: 15px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      .spin-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
-      }
     }
     @media (min-width: 768px) {
       .container {
@@ -103,14 +77,8 @@
         margin: 30px 0;
         position: relative;
       }
-      h2 {
-        font-size: 36px;
-        margin: 0 0 15px 0;
-      }
-      p {
-        font-size: 18px;
-        margin: 10px 0 20px 0;
-      }
+      h2 { font-size: 36px; margin: 0 0 15px 0; }
+      p { font-size: 18px; margin: 10px 0 20px 0; }
       input {
         width: 500px;
         padding: 15px;
@@ -137,31 +105,10 @@
         transform: scale(1.05);
         box-shadow: 0 8px 20px rgba(255, 255, 255, 0.25);
       }
-      .spin-button {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 150px;
-        padding: 15px;
-        background: black;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: transform 0.3s, box-shadow 0.3s;
-        font-size: 18px;
-      }
-      .spin-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.25);
-      }
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
-    }
-    #personalPage, #businessPage, #adminPage {
-      display: none;
     }
   </style>
 </head>
@@ -173,29 +120,67 @@
     <input type="text" id="username" placeholder="Enter your username" />
     <input type="password" id="password" placeholder="Enter your password" />
     <button onclick="login()">Sign In</button>
-   
-    <div class="qr" id="qrSection" style="display:none;">
-      <img src="https://via.placeholder.com/150" alt="Payment QR Code" />
-      <p>Scan to pay and share screenshot below:</p>
-      <input type="file" id="screenshot" accept="image/*" />
-    </div>
   </div>
+
   <script>
+
     
-    const users = {
-      ibrahim: { password: "c0c0c3f3f2f0f2a7e6f5e8a3f4e5c7e8b2c1a4e3d5b6c7a8e9f0a1b2c3d4e5f", page: "ibrahimselection.html" },
-      baderyounus: { password: "a2c4e6f8b0d2a4e6f8b0d2a4e6f8b0d2a4e6f8b0d2a4e6f8b0d2a4e6f8b0d2", page: "Bader.html" },
-      afifaazam: { password: "b3d5f7a9c1e3a5f7b9d1e3a5f7b9d1e3a5f7b9d1e3a5f7b9d1e3a5f7b9d1e3", page: "afifaazam.html" },
-      mariya: { password: "c4e6a8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4", page: "mariya.html" },
-      meraj: { password: "d5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5", page: "meraj.html" },
-      basith: { password: "e6a8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6", page: "basith.html" },
-      ahmed: { password: "f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7b9c1e3a5f7", page: "ahmed.html" },
-      labeebasiraj: { password: "a8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8b0d2f4a6e8", page: "labeebasiraj.html" },
-    };
-    function login() {
-      const username = document.getElementById("username").value;
+  async function sha256(text) {
+    const msgBuffer = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+
+   const users = {
+  ibrahim: {
+    password: "650cdd976fe61406ba90ee3cbd7aedb74f37554cc6b01f493b32084433b8a476",
+    page: "ibrahimselection.html"
+  },
+  baderyounus: {
+    password: "0efdba38942dfb521baaf3911c446ba24e3e20aec6f8311c4adeb9a8aea09b3c",
+    page: "Bader.html"
+  },
+  afifaazam: {
+    password: "c5f86c912a317cadf868a6c9bdfe69dbbbdf207cd947137bcd71ef39c4e127e1",
+    page: "afifaazam.html"
+  },
+  mariya: {
+    password: "dea4e7d4946a8a2b0fbc61605024bfeca2302aa92835a3ba9a6245e66fa8519f",
+    page: "mariya.html"
+  },
+  meraj: {
+    password: "0ce95580c07a8eb7341232391ac71e183328430fc4e6b2241a1d2707c45ad44d",
+    page: "meraj.html"
+  },
+  basith: {
+    password: "fb9119b43ef29206b99b849f76b3dfa943fb96193835b914fd983455aae98c75",
+    page: "basith.html"
+  },
+  ahmed: {
+    password: "5b97a5ee6e0eacf77ace2cf99021afb94866843d1e867d6fb42a68a7ae6f8b7a",
+    page: "ahmed.html"
+  },
+  labeebasiraj: {
+    password: "962c81e1f9eb420375c5ccc910012715966c5ae342c8e1c114baf06aaffd646e",
+    page: "labeebasiraj.html"
+  }
+};
+
+
+    async function sha256(input) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(input);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function login() {
+      const username = document.getElementById("username").value.trim().toLowerCase();
       const password = document.getElementById("password").value;
-      const hashedPassword = sha256(password);
+      const hashedPassword = await sha256(password);
       const user = users[username];
       if (user && user.password === hashedPassword) {
         window.location.href = user.page;
@@ -203,11 +188,13 @@
         alert("Invalid credentials");
       }
     }
+
     (function() {
       const canvases = [
         { canvas: document.getElementById('particles-canvas-body'), container: document.body }
       ];
       const particles = [];
+
       function Particle(canvas) {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
@@ -215,6 +202,7 @@
         this.vy = Math.random() * 0.5 - 0.25;
         this.radius = Math.random() * 1.5;
       }
+
       function initParticles() {
         particles.length = 0;
         canvases.forEach(({ canvas, container }) => {
@@ -225,6 +213,7 @@
           }
         });
       }
+
       function animateParticles() {
         canvases.forEach(({ canvas }) => {
           const ctx = canvas.getContext('2d');
@@ -244,6 +233,7 @@
         });
         requestAnimationFrame(animateParticles);
       }
+
       window.addEventListener('resize', initParticles);
       window.onload = () => {
         initParticles();
