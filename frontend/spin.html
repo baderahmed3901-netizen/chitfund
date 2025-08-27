@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spin Winner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: { primary: '#000', secondary: '#fff', accent: '#4B5563' }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 0.5rem;
+      overflow: hidden;
+    }
+    .main-container {
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+    }
+    #particles-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .spinner-arrow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 24px solid #fff;
+      transform: translate(-50%, -100%) rotate(180deg);
+      z-index: 10;
+    }
+    @media (max-width: 767px) {
+      .wheel-container { width: 70vmin; height: 70vmin; max-width: 280px; max-height: 280px; }
+      #spinCanvas { width: 100%; height: 100%; }
+      h1 { font-size: 1.5rem; }
+      p { font-size: 0.75rem; }
+      #result-area h2 { font-size: 1rem; }
+      #winner-name { font-size: 1.25rem; }
+      .text-accent { font-size: 0.625rem; }
+    }
+    @media (min-width: 768px) {
+      .wheel-container { width: 80vmin; height: 80vmin; max-width: 360px; max-height: 360px; }
+      #spinCanvas { width: 100%; height: 100%; }
+      h1 { font-size: 2.5rem; }
+      p { font-size: 1rem; }
+      #result-area h2 { font-size: 1.25rem; }
+      #winner-name { font-size: 1.75rem; }
+      .text-accent { font-size: 0.875rem; }
+    }
+  </style>
+</head>
+<body class="bg-primary text-secondary font-sans flex items-center justify-center min-h-screen p-2">
+  <div class="main-container max-w-xl w-full p-3 bg-primary rounded-xl shadow-xl flex flex-col items-center space-y-4 text-center border border-white">
+    <canvas id="particles-canvas"></canvas>
+    <h1 class="font-bold text-white mt-1 relative z-10">Spin Winner</h1>
+    <p class="text-accent -mt-1 relative z-10">Monthly lucky draw!</p>
+    <div class="wheel-container relative z-10">
+      <canvas id="spinCanvas" class="rounded-full border-2 border-white"></canvas>
+      <div class="spinner-arrow"></div>
+    </div>
+    <div id="result-area" class="w-full flex flex-col items-center space-y-2 relative z-10">
+      <div class="bg-white text-primary p-2 rounded shadow-inner w-full md:w-2/3">
+        <h2 class="font-bold">Winner:</h2>
+        <p id="winner-name" class="font-extrabold mt-1 animate-pulse text-gray-800">
+          <span id="winner-text">Waiting...</span>
+        </p>
+      </div>
+      <div class="text-accent">Next spin: <span id="countdown-timer" class="font-semibold text-white">...</span></div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  const bgParticlesCanvas = document.getElementById('particles-canvas');
+  const particlesCtx = bgParticlesCanvas.getContext('2d');
+  const mainUIContainer = document.querySelector('.main-container');
+  const particles = [];
+
+  function Particle() {
+    this.x = Math.random() * bgParticlesCanvas.width;
+    this.y = Math.random() * bgParticlesCanvas.height;
+    this.vx = Math.random() * 0.5 - 0.25;
+    this.vy = Math.random() * 0.5 - 0.25;
+    this.radius = Math.random() * 1.5;
+  }
+
+  function initBackgroundParticles() {
+    particles.length = 0;
+    bgParticlesCanvas.width = mainUIContainer.offsetWidth;
+    bgParticlesCanvas.height = mainUIContainer.offsetHeight;
+    for (let i = 0; i < 50; i++) {
+      particles.push(new Particle());
+    }
+  }
+
+  function animateParticles() {
+    particlesCtx.clearRect(0, 0, bgParticlesCanvas.width, bgParticlesCanvas.height);
+    particlesCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = bgParticlesCanvas.width;
+      if (p.x > bgParticlesCanvas.width) p.x = 0;
+      if (p.y < 0) p.y = bgParticlesCanvas.height;
+      if (p.y > bgParticlesCanvas.height) p.y = 0;
+      particlesCtx.beginPath();
+      particlesCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      particlesCtx.fill();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+
+  const participantNames = [
+    'Abdul hannan', 'hajera kauser', 'Hafsa Maheen', 'amul', 'parkline agency',
+    'Khatija', 'Habeeba', 'Mariya', 'Labeeba siraj', 'Afshan/Meraj', 'basith', 'ahmed/bader'
+  ];
+
+  const numSlices = participantNames.length;
+  const anglePerSlice = 360 / numSlices;
+  const wheelCanvas = document.getElementById('spinCanvas');
+  const wheelCtx = wheelCanvas.getContext('2d');
+  const winnerDisplay = document.getElementById('winner-text');
+  const countdownDisplay = document.getElementById('countdown-timer');
+
+  function resizeWheelCanvas() {
+    const size = wheelCanvas.parentElement.offsetWidth;
+    wheelCanvas.width = size;
+    wheelCanvas.height = size;
+    wheelCtx.clearRect(0, 0, size, size);
+  }
+
+  window.addEventListener('resize', resizeWheelCanvas);
+  resizeWheelCanvas();
+
+  function drawSpinWheel(names, rotation = 0) {
+    const radius = wheelCanvas.width / 2;
+    const centerX = radius;
+    const centerY = radius;
+    const arcAngle = (2 * Math.PI) / numSlices;
+
+    wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+    const gradient = wheelCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    wheelCtx.fillStyle = gradient;
+    wheelCtx.fillRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+
+    names.forEach((name, index) => {
+      const startAngle = (index * arcAngle) + rotation;
+      wheelCtx.beginPath();
+      wheelCtx.moveTo(centerX, centerY);
+      wheelCtx.arc(centerX, centerY, radius, startAngle, startAngle + arcAngle);
+      wheelCtx.closePath();
+      wheelCtx.strokeStyle = '#fff';
+      wheelCtx.lineWidth = 1;
+      wheelCtx.stroke();
+      wheelCtx.save();
+      wheelCtx.translate(centerX, centerY);
+      wheelCtx.rotate(startAngle + arcAngle / 2);
+      wheelCtx.textAlign = 'right';
+      wheelCtx.fillStyle = '#fff';
+      wheelCtx.font = `bold ${Math.max(10, radius / (numSlices * 1.5))}px Inter`;
+      wheelCtx.fillText(name.toUpperCase(), radius - 8, 4);
+      wheelCtx.restore();
+    });
+  }
+
+  function spinToWinner(winnerName, isInitial = false) {
+    return new Promise(resolve => {
+      const index = participantNames.indexOf(winnerName);
+      if (index === -1) {
+        winnerDisplay.textContent = winnerName;
+        resolve();
+        return;
+      }
+
+      const targetAngle = (index + 0.5) * anglePerSlice;
+      let finalRotation = 270 - targetAngle;
+      if (finalRotation < 0) finalRotation += 360;
+
+      const fullRotation = (isInitial ? 720 : 1800) + finalRotation;
+      const duration = isInitial ? 2000 : 5000;
+
+      const start = performance.now();
+      let currentRotation = 0;
+
+      function animate(timestamp) {
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 4);
+        currentRotation = easedProgress * fullRotation;
+
+        drawSpinWheel(participantNames, (currentRotation * Math.PI) / 180);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          drawSpinWheel(participantNames, (finalRotation * Math.PI) / 180);
+          winnerDisplay.textContent = winnerName;
+          resolve();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    });
+  }
+
+  async function runSpinLogic() {
+    if (!localStorage.getItem('isInitialized')) {
+      const now = new Date();
+      const initialWinner = 'ahmed/bader';
+      localStorage.setItem('pastWinners', JSON.stringify([initialWinner]));
+      localStorage.setItem('lastSpinDate', now.toISOString());
+      localStorage.setItem('currentWinner', initialWinner);
+      localStorage.setItem('isInitialized', 'true');
+    }
+
+    let pastWinners = JSON.parse(localStorage.getItem('pastWinners') || '[]');
+    const lastSpinDate = new Date(localStorage.getItem('lastSpinDate'));
+    let currentWinner = localStorage.getItem('currentWinner');
+    const now = new Date();
+    const daysSinceLastSpin = (now - lastSpinDate) / (1000 * 60 * 60 * 24);
+
+    if (pastWinners.length === participantNames.length) {
+      pastWinners = [];
+      localStorage.setItem('pastWinners', JSON.stringify([]));
+    }
+
+    const remainingCandidates = participantNames.filter(name => !pastWinners.includes(name));
+
+    if (daysSinceLastSpin >= 31) {
+      const selectedWinner = remainingCandidates[Math.floor(Math.random() * remainingCandidates.length)];
+      await spinToWinner(selectedWinner);
+      pastWinners.push(selectedWinner);
+      localStorage.setItem('pastWinners', JSON.stringify(pastWinners));
+      localStorage.setItem('lastSpinDate', now.toISOString());
+      localStorage.setItem('currentWinner', selectedWinner);
+    } else {
+      winnerDisplay.textContent = currentWinner || 'Awaiting result...';
+      await spinToWinner(currentWinner, true);
+    }
+  }
+
+  function startCountdownTimer() {
+    const updateTimer = () => {
+      const lastSpin = new Date(localStorage.getItem('lastSpinDate'));
+      const nextSpin = new Date(lastSpin);
+      nextSpin.setDate(lastSpin.getDate() + 31);
+      const timeLeft = nextSpin - new Date();
+
+      if (timeLeft <= 0) {
+        countdownDisplay.textContent = 'Spinning...';
+        window.location.reload();
+        return;
+      }
+
+      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+      countdownDisplay.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    };
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  }
+
+  window.onload = () => {
+    initBackgroundParticles();
+    animateParticles();
+    runSpinLogic();
+    startCountdownTimer();
+  };
+})();
+</script>
+
+</body>
+</html>
