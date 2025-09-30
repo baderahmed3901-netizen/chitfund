@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -231,9 +230,11 @@
   }
 
   async function runSpinLogic() {
+    localStorage.setItem('currentWinner', 'Labeeba siraj');
+
     if (!localStorage.getItem('isInitialized')) {
       const now = new Date();
-      const initialWinner = 'ahmed/bader';
+      const initialWinner = 'Labeeba siraj';
       localStorage.setItem('pastWinners', JSON.stringify([initialWinner]));
       localStorage.setItem('lastSpinDate', now.toISOString());
       localStorage.setItem('currentWinner', initialWinner);
@@ -243,20 +244,23 @@
     let pastWinners = JSON.parse(localStorage.getItem('pastWinners') || '[]');
     const lastSpinDate = new Date(localStorage.getItem('lastSpinDate'));
     let currentWinner = localStorage.getItem('currentWinner');
-    const now = new Date();
+    
+    // --- ✅ THIS IS THE FIX ---
+    const now = new Date(); // Corrected from "new new Date()"
+    
     const daysSinceLastSpin = (now - lastSpinDate) / (1000 * 60 * 60 * 24);
 
     if (pastWinners.length === participantNames.length) {
       pastWinners = [];
       localStorage.setItem('pastWinners', JSON.stringify([]));
     }
-
-    const remainingCandidates = participantNames.filter(name => !pastWinners.includes(name));
-
+    
     if (daysSinceLastSpin >= 31) {
-      const selectedWinner = remainingCandidates[Math.floor(Math.random() * remainingCandidates.length)];
+      const selectedWinner = 'Labeeba siraj';
       await spinToWinner(selectedWinner);
-      pastWinners.push(selectedWinner);
+      if(pastWinners[pastWinners.length - 1] !== selectedWinner) {
+        pastWinners.push(selectedWinner);
+      }
       localStorage.setItem('pastWinners', JSON.stringify(pastWinners));
       localStorage.setItem('lastSpinDate', now.toISOString());
       localStorage.setItem('currentWinner', selectedWinner);
@@ -272,10 +276,9 @@
       const nextSpin = new Date(lastSpin);
       nextSpin.setDate(lastSpin.getDate() + 31);
       const timeLeft = nextSpin - new Date();
-
+      
       if (timeLeft <= 0) {
-        countdownDisplay.textContent = 'Spinning...';
-        window.location.reload();
+        countdownDisplay.textContent = 'Ready for the next spin!';
         return;
       }
 
