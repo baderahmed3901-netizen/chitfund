@@ -192,7 +192,8 @@
 
   function spinToWinner(winnerName, isInitial = false) {
     return new Promise(resolve => {
-      const index = participantNames.indexOf(winnerName);
+      // Ensure the name is case-insensitive for matching
+      const index = participantNames.map(name => name.toLowerCase()).indexOf(winnerName.toLowerCase());
       if (index === -1) {
         winnerDisplay.textContent = winnerName;
         resolve();
@@ -230,11 +231,13 @@
   }
 
   async function runSpinLogic() {
-    localStorage.setItem('currentWinner', 'Labeeba siraj');
+    // --- ✅ CHANGE 1: Set the default current winner ---
+    localStorage.setItem('currentWinner', 'Afshan/Meraj');
 
     if (!localStorage.getItem('isInitialized')) {
       const now = new Date();
-      const initialWinner = 'Labeeba siraj';
+      // --- ✅ CHANGE 2: Set the very first winner ---
+      const initialWinner = 'Afshan/Meraj'; 
       localStorage.setItem('pastWinners', JSON.stringify([initialWinner]));
       localStorage.setItem('lastSpinDate', now.toISOString());
       localStorage.setItem('currentWinner', initialWinner);
@@ -245,9 +248,7 @@
     const lastSpinDate = new Date(localStorage.getItem('lastSpinDate'));
     let currentWinner = localStorage.getItem('currentWinner');
     
-    // --- ✅ THIS IS THE FIX ---
-    const now = new Date(); // Corrected from "new new Date()"
-    
+    const now = new Date();
     const daysSinceLastSpin = (now - lastSpinDate) / (1000 * 60 * 60 * 24);
 
     if (pastWinners.length === participantNames.length) {
@@ -256,7 +257,8 @@
     }
     
     if (daysSinceLastSpin >= 31) {
-      const selectedWinner = 'Labeeba siraj';
+      // --- ✅ CHANGE 3: Set the winner for a new spin ---
+      const selectedWinner = 'Afshan/Meraj'; 
       await spinToWinner(selectedWinner);
       if(pastWinners[pastWinners.length - 1] !== selectedWinner) {
         pastWinners.push(selectedWinner);
