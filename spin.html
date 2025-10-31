@@ -89,7 +89,7 @@
           <span id="winner-text">Waiting...</span>
         </p>
       </div>
-      <div class="text-accent">Next spin: <span id="countdown-timer" class="font-semibold text-white">...</span></div>
+      <div class="text-accent">Next official draw: <span id="countdown-timer" class="font-semibold text-white">...</span></div>
     </div>
   </div>
 
@@ -145,7 +145,7 @@
   const wheelCtx = wheelCanvas.getContext('2d');
   const winnerDisplay = document.getElementById('winner-text');
   const countdownDisplay = document.getElementById('countdown-timer');
-
+  
   function resizeWheelCanvas() {
     const size = wheelCanvas.parentElement.offsetWidth;
     wheelCanvas.width = size;
@@ -190,12 +190,11 @@
     });
   }
 
-  function spinToWinner(winnerName, isInitial = false) {
+  function spinToWinner(winnerName, isOfficialDraw = false) {
     return new Promise(resolve => {
-      // Ensure the name is case-insensitive for matching
-      const index = participantNames.map(name => name.toLowerCase()).indexOf(winnerName.toLowerCase());
+      const index = participantNames.indexOf(winnerName);
       if (index === -1) {
-        winnerDisplay.textContent = winnerName;
+        winnerDisplay.textContent = "Error";
         resolve();
         return;
       }
@@ -204,8 +203,8 @@
       let finalRotation = 270 - targetAngle;
       if (finalRotation < 0) finalRotation += 360;
 
-      const fullRotation = (isInitial ? 720 : 1800) + finalRotation;
-      const duration = isInitial ? 2000 : 5000;
+      const fullRotation = isOfficialDraw ? 3600 : 1800; // Longer spin for official draw
+      const duration = isOfficialDraw ? 6000 : 3000; // Faster spin for fun mode
 
       const start = performance.now();
       let currentRotation = 0;
@@ -213,7 +212,7 @@
       function animate(timestamp) {
         const progress = Math.min((timestamp - start) / duration, 1);
         const easedProgress = 1 - Math.pow(1 - progress, 4);
-        currentRotation = easedProgress * fullRotation;
+        currentRotation = (easedProgress * fullRotation) + finalRotation;
 
         drawSpinWheel(participantNames, (currentRotation * Math.PI) / 180);
 
@@ -225,62 +224,52 @@
           resolve();
         }
       }
-
       requestAnimationFrame(animate);
     });
   }
 
+  // --- ✅ NEW LOGIC IS HERE ---
   async function runSpinLogic() {
-    // --- ✅ CHANGE 1: Set the default current winner ---
-    localStorage.setItem('currentWinner', 'Afshan/Meraj');
+    const now = new Date().getTime(); // Use timestamp for easier comparison
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
 
-    if (!localStorage.getItem('isInitialized')) {
-      const now = new Date();
-      // --- ✅ CHANGE 2: Set the very first winner ---
-      const initialWinner = 'Afshan/Meraj'; 
-      localStorage.setItem('pastWinners', JSON.stringify([initialWinner]));
-      localStorage.setItem('lastSpinDate', now.toISOString());
-      localStorage.setItem('currentWinner', initialWinner);
-      localStorage.setItem('isInitialized', 'true');
-    }
+    const lastDrawTimestamp = localStorage.getItem('drawTimestamp');
+    let selectedWinner;
 
-    let pastWinners = JSON.parse(localStorage.getItem('pastWinners') || '[]');
-    const lastSpinDate = new Date(localStorage.getItem('lastSpinDate'));
-    let currentWinner = localStorage.getItem('currentWinner');
-    
-    const now = new Date();
-    const daysSinceLastSpin = (now - lastSpinDate) / (1000 * 60 * 60 * 24);
+    if (!lastDrawTimestamp || (now - lastDrawTimestamp > thirtyDaysInMs)) {
+      // --- This is an OFFICIAL DRAW ---
+      // Time for a new official winner. Pick one and save it.
+      const winnerIndex = Math.floor(Math.random() * participantNames.length);
+      selectedWinner = participantNames[winnerIndex];
+      
+      localStorage.setItem('officialWinner', selectedWinner);
+      localStorage.setItem('drawTimestamp', now);
 
-    if (pastWinners.length === participantNames.length) {
-      pastWinners = [];
-      localStorage.setItem('pastWinners', JSON.stringify([]));
-    }
-    
-    if (daysSinceLastSpin >= 31) {
-      // --- ✅ CHANGE 3: Set the winner for a new spin ---
-      const selectedWinner = 'Afshan/Meraj'; 
-      await spinToWinner(selectedWinner);
-      if(pastWinners[pastWinners.length - 1] !== selectedWinner) {
-        pastWinners.push(selectedWinner);
-      }
-      localStorage.setItem('pastWinners', JSON.stringify(pastWinners));
-      localStorage.setItem('lastSpinDate', now.toISOString());
-      localStorage.setItem('currentWinner', selectedWinner);
+      await spinToWinner(selectedWinner, true); // Use long, official spin
     } else {
-      winnerDisplay.textContent = currentWinner || 'Awaiting result...';
-      await spinToWinner(currentWinner, true);
+      // --- This is "FUN MODE" (just for show) ---
+      // We are within the 30-day period. Show a new random winner on every reload.
+      const funWinnerIndex = Math.floor(Math.random() * participantNames.length);
+      selectedWinner = participantNames[funWinnerIndex];
+      // IMPORTANT: We DO NOT save this winner.
+      
+      await spinToWinner(selectedWinner, false); // Use short, fun spin
     }
   }
 
   function startCountdownTimer() {
     const updateTimer = () => {
-      const lastSpin = new Date(localStorage.getItem('lastSpinDate'));
-      const nextSpin = new Date(lastSpin);
-      nextSpin.setDate(lastSpin.getDate() + 31);
-      const timeLeft = nextSpin - new Date();
+      const lastDrawTimestamp = parseInt(localStorage.getItem('drawTimestamp'));
+      if (!lastDrawTimestamp) {
+        countdownDisplay.textContent = 'Ready for first draw!';
+        return;
+      }
+
+      const nextDrawTime = lastDrawTimestamp + (30 * 24 * 60 * 60 * 1000);
+      const timeLeft = nextDrawTime - new Date().getTime();
       
       if (timeLeft <= 0) {
-        countdownDisplay.textContent = 'Ready for the next spin!';
+        countdownDisplay.textContent = 'Ready for the next draw!';
         return;
       }
 
