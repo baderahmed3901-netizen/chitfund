@@ -134,9 +134,10 @@
     requestAnimationFrame(animateParticles);
   }
 
+  // --- ✅ NAME LIST HAS BEEN UPDATED ---
   const participantNames = [
-    'Abdul hannan', 'hajera kauser', 'Hafsa Maheen', 'amul', 'parkline agency',
-    'Khatija', 'Habeeba', 'Mariya', 'Labeeba siraj', 'Afshan/Meraj', 'basith', 'ahmed/bader'
+    'hajera kauser', 'amul', 'parkline agency', 'Khatija', 'Habeeba',
+    'Mariya', 'Labeeba siraj/meraj', 'basith', 'afshan begum'
   ];
 
   const numSlices = participantNames.length;
@@ -228,32 +229,24 @@
     });
   }
 
-  // --- ✅ NEW LOGIC IS HERE ---
+  // --- ✅ WINNER SELECTION LOGIC IS RIGGED ---
   async function runSpinLogic() {
-    const now = new Date().getTime(); // Use timestamp for easier comparison
+    const riggedWinner = 'afshan begum'; // Always select this winner
+
+    const now = new Date().getTime();
     const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-
     const lastDrawTimestamp = localStorage.getItem('drawTimestamp');
-    let selectedWinner;
 
+    // The spin logic now simplifies. We decide if it's an "official" looking spin
+    // or a "fun" spin, but the winner is always the same.
     if (!lastDrawTimestamp || (now - lastDrawTimestamp > thirtyDaysInMs)) {
-      // --- This is an OFFICIAL DRAW ---
-      // Time for a new official winner. Pick one and save it.
-      const winnerIndex = Math.floor(Math.random() * participantNames.length);
-      selectedWinner = participantNames[winnerIndex];
-      
-      localStorage.setItem('officialWinner', selectedWinner);
-      localStorage.setItem('drawTimestamp', now);
-
-      await spinToWinner(selectedWinner, true); // Use long, official spin
+        // Time for a new official draw. Save the timestamp.
+        localStorage.setItem('officialWinner', riggedWinner);
+        localStorage.setItem('drawTimestamp', now);
+        await spinToWinner(riggedWinner, true); // Use long, official spin
     } else {
-      // --- This is "FUN MODE" (just for show) ---
-      // We are within the 30-day period. Show a new random winner on every reload.
-      const funWinnerIndex = Math.floor(Math.random() * participantNames.length);
-      selectedWinner = participantNames[funWinnerIndex];
-      // IMPORTANT: We DO NOT save this winner.
-      
-      await spinToWinner(selectedWinner, false); // Use short, fun spin
+        // Within the 30-day period. Still show the same winner.
+        await spinToWinner(riggedWinner, false); // Use short, fun spin
     }
   }
 
