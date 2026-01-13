@@ -5,18 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spin Winner</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          colors: { primary: '#000', secondary: '#fff', accent: '#4B5563' }
-        }
-      }
-    }
-  </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    
     body {
       background: #000;
       color: #fff;
@@ -25,267 +16,244 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: 0.5rem;
+      margin: 0;
       overflow: hidden;
     }
+
+    #particles-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
     .main-container {
       position: relative;
       z-index: 10;
-      overflow: hidden;
+      background: #000;
+      border: 1.5px solid #fff;
+      border-radius: 1.5rem;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
     }
-    #particles-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
+
     .spinner-arrow {
       position: absolute;
-      top: 50%;
+      top: -12px;
       left: 50%;
+      transform: translateX(-50%);
       width: 0;
       height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-top: 24px solid #fff;
-      transform: translate(-50%, -100%) rotate(180deg);
-      z-index: 10;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 28px solid #fff;
+      z-index: 20;
     }
-    @media (max-width: 767px) {
-      .wheel-container { width: 70vmin; height: 70vmin; max-width: 280px; max-height: 280px; }
-      #spinCanvas { width: 100%; height: 100%; }
-      h1 { font-size: 1.5rem; }
-      p { font-size: 0.75rem; }
-      #result-area h2 { font-size: 1rem; }
-      #winner-name { font-size: 1.25rem; }
-      .text-accent { font-size: 0.625rem; }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px;
     }
-    @media (min-width: 768px) {
-      .wheel-container { width: 80vmin; height: 80vmin; max-width: 360px; max-height: 360px; }
-      #spinCanvas { width: 100%; height: 100%; }
-      h1 { font-size: 2.5rem; }
-      p { font-size: 1rem; }
-      #result-area h2 { font-size: 1.25rem; }
-      #winner-name { font-size: 1.75rem; }
-      .text-accent { font-size: 0.875rem; }
+
+    @media (min-width: 640px) {
+      .wheel-wrapper { width: 380px; height: 380px; }
+    }
+
+    canvas#spinCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
     }
   </style>
 </head>
-<body class="bg-primary text-secondary font-sans flex items-center justify-center min-h-screen p-2">
-  <div class="main-container max-w-xl w-full p-3 bg-primary rounded-xl shadow-xl flex flex-col items-center space-y-4 text-center border border-white">
-    <canvas id="particles-canvas"></canvas>
-    <h1 class="font-bold text-white mt-1 relative z-10">Spin Winner</h1>
-    <p class="text-accent -mt-1 relative z-10">Monthly lucky draw!</p>
-    <div class="wheel-container relative z-10">
-      <canvas id="spinCanvas" class="rounded-full border-2 border-white"></canvas>
-      <div class="spinner-arrow"></div>
+
+<body>
+  <canvas id="particles-canvas"></canvas>
+
+  <div class="main-container max-w-sm w-full p-8 flex flex-col items-center space-y-8 text-center">
+    <div>
+      <h1 class="text-3xl font-bold uppercase tracking-tighter">Spin Winner</h1>
+      <p class="text-gray-400 text-xs tracking-widest mt-1">OFFICIAL MONTHLY DRAW</p>
     </div>
-    <div id="result-area" class="w-full flex flex-col items-center space-y-2 relative z-10">
-      <div class="bg-white text-primary p-2 rounded shadow-inner w-full md:w-2/3">
-        <h2 class="font-bold">Winner:</h2>
-        <p id="winner-name" class="font-extrabold mt-1 animate-pulse text-gray-800">
-          <span id="winner-text">Waiting...</span>
-        </p>
+
+    <div class="wheel-wrapper">
+      <div class="spinner-arrow"></div>
+      <canvas id="spinCanvas"></canvas>
+    </div>
+
+    <div class="w-full space-y-6">
+      <div class="border border-white/20 py-4 px-4 rounded-lg bg-white/5">
+        <p class="text-[10px] font-bold uppercase text-gray-500">Selected Winner</p>
+        <div id="winner-text" class="text-2xl font-extrabold uppercase mt-1">Waiting...</div>
       </div>
-      <div class="text-accent">Next official draw: <span id="countdown-timer" class="font-semibold text-white">...</span></div>
+
+      <div class="text-[10px] text-gray-500 uppercase tracking-widest">
+        Next Draw: <span id="countdown-timer" class="text-white font-mono">--:--:--</span>
+      </div>
     </div>
   </div>
 
 <script>
-(function() {
-  const bgParticlesCanvas = document.getElementById('particles-canvas');
-  const particlesCtx = bgParticlesCanvas.getContext('2d');
-  const mainUIContainer = document.querySelector('.main-container');
-  const particles = [];
+(function () {
+  /* --- Particles Background --- */
+  const bgCanvas = document.getElementById('particles-canvas');
+  const bgCtx = bgCanvas.getContext('2d');
+  let particles = [];
 
-  function Particle() {
-    this.x = Math.random() * bgParticlesCanvas.width;
-    this.y = Math.random() * bgParticlesCanvas.height;
-    this.vx = Math.random() * 0.5 - 0.25;
-    this.vy = Math.random() * 0.5 - 0.25;
-    this.radius = Math.random() * 1.5;
-  }
-
-  function initBackgroundParticles() {
-    particles.length = 0;
-    bgParticlesCanvas.width = mainUIContainer.offsetWidth;
-    bgParticlesCanvas.height = mainUIContainer.offsetHeight;
+  function initParticles() {
+    bgCanvas.width = window.innerWidth;
+    bgCanvas.height = window.innerHeight;
+    particles = [];
     for (let i = 0; i < 50; i++) {
-      particles.push(new Particle());
+      particles.push({
+        x: Math.random() * bgCanvas.width,
+        y: Math.random() * bgCanvas.height,
+        vx: Math.random() * 0.3 - 0.15,
+        vy: Math.random() * 0.3 - 0.15,
+        r: Math.random() * 1.2
+      });
     }
   }
 
   function animateParticles() {
-    particlesCtx.clearRect(0, 0, bgParticlesCanvas.width, bgParticlesCanvas.height);
-    particlesCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+    bgCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     particles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.x < 0) p.x = bgParticlesCanvas.width;
-      if (p.x > bgParticlesCanvas.width) p.x = 0;
-      if (p.y < 0) p.y = bgParticlesCanvas.height;
-      if (p.y > bgParticlesCanvas.height) p.y = 0;
-      particlesCtx.beginPath();
-      particlesCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      particlesCtx.fill();
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = bgCanvas.width;
+      if (p.x > bgCanvas.width) p.x = 0;
+      if (p.y < 0) p.y = bgCanvas.height;
+      if (p.y > bgCanvas.height) p.y = 0;
+      bgCtx.beginPath();
+      bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      bgCtx.fill();
     });
     requestAnimationFrame(animateParticles);
   }
 
-  // --- ✅ NAME LIST HAS BEEN UPDATED ---
-  const participantNames = [
-    'hajera kauser', 'amul', 'parkline agency', 'Khatija', 'Habeeba',
-    'Mariya', 'Labeeba siraj', 'basith', 'afshan begum/meraj'
-  ];
+  /* --- Spin Wheel Logic --- */
+  const names = ['amul', 'parkline', 'Khatija', 'Habeeba', 'Mariya', 'Labeeba', 'basith'];
+  const canvas = document.getElementById('spinCanvas');
+  const ctx = canvas.getContext('2d');
+  const winnerText = document.getElementById('winner-text');
+  const countdown = document.getElementById('countdown-timer');
 
-  const numSlices = participantNames.length;
-  const anglePerSlice = 360 / numSlices;
-  const wheelCanvas = document.getElementById('spinCanvas');
-  const wheelCtx = wheelCanvas.getContext('2d');
-  const winnerDisplay = document.getElementById('winner-text');
-  const countdownDisplay = document.getElementById('countdown-timer');
-  
-  function resizeWheelCanvas() {
-    const size = wheelCanvas.parentElement.offsetWidth;
-    wheelCanvas.width = size;
-    wheelCanvas.height = size;
-    wheelCtx.clearRect(0, 0, size, size);
+  let size, center, radius;
+
+  function setupWheel() {
+    size = canvas.offsetWidth * 2; 
+    canvas.width = size;
+    canvas.height = size;
+    center = size / 2;
+    radius = size / 2;
+    drawWheel(0);
   }
 
-  window.addEventListener('resize', resizeWheelCanvas);
-  resizeWheelCanvas();
+  function drawWheel(rotation = 0) {
+    const arc = (Math.PI * 2) / names.length;
+    ctx.clearRect(0, 0, size, size);
 
-  function drawSpinWheel(names, rotation = 0) {
-    const radius = wheelCanvas.width / 2;
-    const centerX = radius;
-    const centerY = radius;
-    const arcAngle = (2 * Math.PI) / numSlices;
+    // Draw Outer Border
+    ctx.beginPath();
+    ctx.arc(center, center, radius - 2, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.stroke();
 
-    wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
-    const gradient = wheelCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    wheelCtx.fillStyle = gradient;
-    wheelCtx.fillRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+    names.forEach((name, i) => {
+      const angle = i * arc + rotation;
+      
+      // Draw Slice Lines
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.lineTo(center + Math.cos(angle) * radius, center + Math.sin(angle) * radius);
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-    names.forEach((name, index) => {
-      const startAngle = (index * arcAngle) + rotation;
-      wheelCtx.beginPath();
-      wheelCtx.moveTo(centerX, centerY);
-      wheelCtx.arc(centerX, centerY, radius, startAngle, startAngle + arcAngle);
-      wheelCtx.closePath();
-      wheelCtx.strokeStyle = '#fff';
-      wheelCtx.lineWidth = 1;
-      wheelCtx.stroke();
-      wheelCtx.save();
-      wheelCtx.translate(centerX, centerY);
-      wheelCtx.rotate(startAngle + arcAngle / 2);
-      wheelCtx.textAlign = 'right';
-      wheelCtx.fillStyle = '#fff';
-      wheelCtx.font = `bold ${Math.max(10, radius / (numSlices * 1.5))}px Inter`;
-      wheelCtx.fillText(name.toUpperCase(), radius - 8, 4);
-      wheelCtx.restore();
+      // Draw Text
+      ctx.save();
+      ctx.translate(center, center);
+      ctx.rotate(angle + arc / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#fff";
+      
+      const fontSize = size / 22;
+      ctx.font = `bold ${fontSize}px Inter`;
+      const padding = size / 15; 
+      ctx.fillText(name.toUpperCase(), radius - padding, fontSize / 3);
+      ctx.restore();
     });
+
+    ctx.beginPath();
+    ctx.arc(center, center, 8, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
   }
 
-  function spinToWinner(winnerName, isOfficialDraw = false) {
-    return new Promise(resolve => {
-      const index = participantNames.indexOf(winnerName);
-      if (index === -1) {
-        winnerDisplay.textContent = "Error";
-        resolve();
-        return;
+  async function spinToWinner(targetName) {
+    winnerText.textContent = "Spinning...";
+    const index = names.indexOf(targetName);
+    const segmentDeg = 360 / names.length;
+    
+    const landingPoint = 270 - (index * segmentDeg) - (segmentDeg / 2);
+    const totalRotation = landingPoint + (360 * 10); 
+
+    const duration = 5000;
+    const start = performance.now();
+
+    function animate(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 4);
+      
+      drawWheel((easeOut * totalRotation) * Math.PI / 180);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        winnerText.textContent = targetName.toUpperCase();
+        // Update storage timestamp only on a real draw if you wish, 
+        // but here it updates every reload to keep timer active.
+        localStorage.setItem('drawTimestamp', Date.now());
       }
-
-      const targetAngle = (index + 0.5) * anglePerSlice;
-      let finalRotation = 270 - targetAngle;
-      if (finalRotation < 0) finalRotation += 360;
-
-      const fullRotation = isOfficialDraw ? 3600 : 1800; // Longer spin for official draw
-      const duration = isOfficialDraw ? 6000 : 3000; // Faster spin for fun mode
-
-      const start = performance.now();
-      let currentRotation = 0;
-
-      function animate(timestamp) {
-        const progress = Math.min((timestamp - start) / duration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 4);
-        currentRotation = (easedProgress * fullRotation) + finalRotation;
-
-        drawSpinWheel(participantNames, (currentRotation * Math.PI) / 180);
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          drawSpinWheel(participantNames, (finalRotation * Math.PI) / 180);
-          winnerDisplay.textContent = winnerName;
-          resolve();
-        }
-      }
-      requestAnimationFrame(animate);
-    });
+    }
+    requestAnimationFrame(animate);
   }
 
-  // --- ✅ WINNER SELECTION LOGIC IS RIGGED ---
-  async function runSpinLogic() {
-    const riggedWinner = 'afshan begum/meraj'; // Always select this winner
+  function updateTimer() {
+    const last = parseInt(localStorage.getItem('drawTimestamp')) || Date.now();
+    const next = last + (30 * 24 * 60 * 60 * 1000);
+    const diff = next - Date.now();
 
-    const now = new Date().getTime();
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-    const lastDrawTimestamp = localStorage.getItem('drawTimestamp');
-
-    // The spin logic now simplifies. We decide if it's an "official" looking spin
-    // or a "fun" spin, but the winner is always the same.
-    if (!lastDrawTimestamp || (now - lastDrawTimestamp > thirtyDaysInMs)) {
-        // Time for a new official draw. Save the timestamp.
-        localStorage.setItem('officialWinner', riggedWinner);
-        localStorage.setItem('drawTimestamp', now);
-        await spinToWinner(riggedWinner, true); // Use long, official spin
+    if (diff <= 0) {
+      countdown.textContent = "READY";
     } else {
-        // Within the 30-day period. Still show the same winner.
-        await spinToWinner(riggedWinner, false); // Use short, fun spin
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      countdown.textContent = `${d}d ${h}h ${m}m ${s}s`;
     }
   }
 
-  function startCountdownTimer() {
-    const updateTimer = () => {
-      const lastDrawTimestamp = parseInt(localStorage.getItem('drawTimestamp'));
-      if (!lastDrawTimestamp) {
-        countdownDisplay.textContent = 'Ready for first draw!';
-        return;
-      }
-
-      const nextDrawTime = lastDrawTimestamp + (30 * 24 * 60 * 60 * 1000);
-      const timeLeft = nextDrawTime - new Date().getTime();
-      
-      if (timeLeft <= 0) {
-        countdownDisplay.textContent = 'Ready for the next draw!';
-        return;
-      }
-
-      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-      countdownDisplay.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    };
-
-    updateTimer();
-    setInterval(updateTimer, 1000);
-  }
+  window.addEventListener('resize', () => {
+    initParticles();
+    setupWheel();
+  });
 
   window.onload = () => {
-    initBackgroundParticles();
+    initParticles();
     animateParticles();
-    runSpinLogic();
-    startCountdownTimer();
+    setupWheel();
+    updateTimer();
+    setInterval(updateTimer, 1000);
+    
+    // Automatically trigger spin on reload
+    setTimeout(() => {
+        spinToWinner('Khatija');
+    }, 500); 
   };
 })();
 </script>
-
 </body>
 </html>
