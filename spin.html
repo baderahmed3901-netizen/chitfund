@@ -131,7 +131,7 @@
   }
 
   /* --- Spin Wheel Logic --- */
-  const names = ['amul', 'parkline', 'Khatija', 'Habeeba', 'Mariya', 'Labeeba', 'basith'];
+  const names = ['amul', 'parkline', 'Habeeba', 'Mariya', 'Labeeba', 'basith']; // removed Khatija
   const canvas = document.getElementById('spinCanvas');
   const ctx = canvas.getContext('2d');
   const winnerText = document.getElementById('winner-text');
@@ -152,7 +152,6 @@
     const arc = (Math.PI * 2) / names.length;
     ctx.clearRect(0, 0, size, size);
 
-    // Draw Outer Border
     ctx.beginPath();
     ctx.arc(center, center, radius - 2, 0, Math.PI * 2);
     ctx.strokeStyle = '#fff';
@@ -162,7 +161,6 @@
     names.forEach((name, i) => {
       const angle = i * arc + rotation;
       
-      // Draw Slice Lines
       ctx.beginPath();
       ctx.moveTo(center, center);
       ctx.lineTo(center + Math.cos(angle) * radius, center + Math.sin(angle) * radius);
@@ -170,7 +168,6 @@
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Draw Text
       ctx.save();
       ctx.translate(center, center);
       ctx.rotate(angle + arc / 2);
@@ -212,8 +209,6 @@
         requestAnimationFrame(animate);
       } else {
         winnerText.textContent = targetName.toUpperCase();
-        // Update storage timestamp only on a real draw if you wish, 
-        // but here it updates every reload to keep timer active.
         localStorage.setItem('drawTimestamp', Date.now());
       }
     }
@@ -242,17 +237,32 @@
   });
 
   window.onload = () => {
-    initParticles();
-    animateParticles();
-    setupWheel();
-    updateTimer();
-    setInterval(updateTimer, 1000);
-    
-    // Automatically trigger spin on reload
-    setTimeout(() => {
-        spinToWinner('Khatija');
-    }, 500); 
-  };
+  initParticles();
+  animateParticles();
+  setupWheel();
+
+  const targetDate = new Date("2026-04-30T00:00:00"); // April 30
+
+  function updateTimerAndCheck() {
+    const now = new Date();
+    const diff = targetDate - now;
+
+    if (diff <= 0) {
+      countdown.textContent = "DRAWING...";
+      spinToWinner('basith'); // spins ONLY once on April 30
+      clearInterval(timerInterval);
+    } else {
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      countdown.textContent = `${d}d ${h}h ${m}m ${s}s`;
+    }
+  }
+
+  updateTimerAndCheck();
+  const timerInterval = setInterval(updateTimerAndCheck, 1000);
+};
 })();
 </script>
 </body>
