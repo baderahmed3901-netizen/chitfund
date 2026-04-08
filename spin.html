@@ -94,6 +94,7 @@
 
 <script>
 (function () {
+
   /* --- Particles Background --- */
   const bgCanvas = document.getElementById('particles-canvas');
   const bgCtx = bgCanvas.getContext('2d');
@@ -131,7 +132,7 @@
   }
 
   /* --- Spin Wheel Logic --- */
-  const names = ['amul', 'parkline', 'Habeeba', 'Mariya', 'Labeeba', 'basith']; // removed Khatija
+  const names = ['amul', 'parkline', 'Habeeba', 'Mariya', 'Labeeba', 'basith'];
   const canvas = document.getElementById('spinCanvas');
   const ctx = canvas.getContext('2d');
   const winnerText = document.getElementById('winner-text');
@@ -140,7 +141,7 @@
   let size, center, radius;
 
   function setupWheel() {
-    size = canvas.offsetWidth * 2; 
+    size = canvas.offsetWidth * 2;
     canvas.width = size;
     canvas.height = size;
     center = size / 2;
@@ -160,7 +161,7 @@
 
     names.forEach((name, i) => {
       const angle = i * arc + rotation;
-      
+
       ctx.beginPath();
       ctx.moveTo(center, center);
       ctx.lineTo(center + Math.cos(angle) * radius, center + Math.sin(angle) * radius);
@@ -173,10 +174,10 @@
       ctx.rotate(angle + arc / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
-      
+
       const fontSize = size / 22;
       ctx.font = `bold ${fontSize}px Inter`;
-      const padding = size / 15; 
+      const padding = size / 15;
       ctx.fillText(name.toUpperCase(), radius - padding, fontSize / 3);
       ctx.restore();
     });
@@ -187,82 +188,69 @@
     ctx.fill();
   }
 
-  async function spinToWinner(targetName) {
+  function spinToWinner(targetName) {
     winnerText.textContent = "Spinning...";
     const index = names.indexOf(targetName);
     const segmentDeg = 360 / names.length;
-    
+
     const landingPoint = 270 - (index * segmentDeg) - (segmentDeg / 2);
-    const totalRotation = landingPoint + (360 * 10); 
+    const totalRotation = landingPoint + (360 * 10);
 
     const duration = 5000;
     const start = performance.now();
 
     function animate(now) {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.min((now - start) / duration, 1);
       const easeOut = 1 - Math.pow(1 - progress, 4);
-      
+
       drawWheel((easeOut * totalRotation) * Math.PI / 180);
 
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
         winnerText.textContent = targetName.toUpperCase();
-        localStorage.setItem('drawTimestamp', Date.now());
+        localStorage.setItem('hasSpun', 'true');
       }
     }
     requestAnimationFrame(animate);
   }
 
-  function updateTimer() {
-    const last = parseInt(localStorage.getItem('drawTimestamp')) || Date.now();
-    const next = last + (30 * 24 * 60 * 60 * 1000);
-    const diff = next - Date.now();
-
-    if (diff <= 0) {
-      countdown.textContent = "READY";
-    } else {
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff % 86400000) / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      countdown.textContent = `${d}d ${h}h ${m}m ${s}s`;
-    }
-  }
-
-  window.addEventListener('resize', () => {
-    initParticles();
-    setupWheel();
-  });
-
+  localStorage.removeItem('hasSpun');
   window.onload = () => {
-  initParticles();
-  animateParticles();
-  setupWheel();
+    initParticles();
+    animateParticles();
+    setupWheel();
 
-  const targetDate = new Date("2026-04-30T00:00:00"); // April 30
+    const targetDate = new Date(Date.now() + 1000); // spin after 5 seconds
 
-  function updateTimerAndCheck() {
-    const now = new Date();
-    const diff = targetDate - now;
+    function updateTimer() {
+      const now = new Date();
+      const diff = targetDate - now;
+      const alreadySpun = localStorage.getItem('hasSpun');
 
-    if (diff <= 0) {
-      countdown.textContent = "DRAWING...";
-      spinToWinner('basith'); // spins ONLY once on April 30
-      clearInterval(timerInterval);
-    } else {
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff % 86400000) / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      countdown.textContent = `${d}d ${h}h ${m}m ${s}s`;
+      if (diff <= 0) {
+        countdown.textContent = "DRAWING...";
+
+        if (!alreadySpun) {
+          spinToWinner('basith');
+        } else {
+          winnerText.textContent = "BASITH";
+        }
+
+        clearInterval(timerInterval);
+      } else {
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        countdown.textContent = `${d}d ${h}h ${m}m ${s}s`;
+      }
     }
-  }
 
-  updateTimerAndCheck();
-  const timerInterval = setInterval(updateTimerAndCheck, 1000);
-};
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+  };
+
 })();
 </script>
 </body>
